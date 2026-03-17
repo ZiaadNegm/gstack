@@ -456,7 +456,7 @@ git push -u origin <branch-name>
 
 ## Step 8: Create PR
 
-Read the pr-create skill at `.claude/skills/gstack-fork/pr-create/SKILL.md` and follow its instructions to create the PR.
+Read the pr-create skill at `.claude/skills/pr-create/SKILL.md` and follow its instructions to create the PR.
 
 **Additional ship-specific sections** to append after the pr-create template's standard sections (before the footer):
 
