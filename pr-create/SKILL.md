@@ -221,32 +221,45 @@ _(If no `.context/decisions.md` and user confirms no alternatives: "Straightforw
 ## How to Verify
 
 ### Prerequisites
-{What state the system needs to be in. What data must exist. What services must be running. What user accounts are needed. Be specific — if a database record needs specific field values, say which ones.}
+{What state the system needs to be in. What data must exist. What services must be running. What user accounts are needed. Be specific — if a database record needs specific field values, say which ones. Be thorough — include Docker services, environment variables, feature flags, user roles, and any other preconditions.}
 
 ### Data/State Setup
-{Runnable queries or commands that set up the required state for testing. The reviewer should be able to copy-paste these directly. Generate actual commands based on the code changes — not placeholders.}
+{Runnable queries or commands that set up the required state for testing. The reviewer should be able to copy-paste these directly. Generate actual commands with real values based on the code changes — not placeholders. Include collection names, field values, and expected IDs. The goal: a reviewer copies this block, runs it, and has a working test environment.}
 
 ```bash
 # Example: create test data
 docker exec tenx-mongodb mongosh --quiet --eval '...'
 ```
 
-### Step-by-step verification
-{Generate these steps yourself based on the actual code changes, the diff, and the affected pages. Do NOT blindly copy from the test plan artifact. The test plan is inspiration and context — these steps must reflect what the code actually does.}
+### Manual Verification
+{Generate these steps yourself by analyzing the actual code diff, the affected controllers/pages/services, and the user-facing changes. Trace the code paths to determine what URLs, buttons, and states are involved. Do NOT copy from the test plan artifact — write these from what the code actually does.}
 
 1. Go to `{url}`
-2. {action}
-3. **Expect:** {result}
+2. {action — be specific: which button, which form field, which menu item}
+3. **Expect:** {what the page should show, what data should change, what notification should appear}
+
+{Continue for each verification path. Include both happy path and error/edge case paths.}
+
+### Code-Level Verification
+{CLI commands, API calls, or database queries a reviewer can run to verify the change works at the system level — independent of the UI. Generate these from the actual code changes.}
+
+```bash
+# Example: verify API response
+curl -s http://localhost:7100/api/endpoint | jq '.field'
+
+# Example: verify database state after action
+docker exec tenx-mongodb mongosh --quiet --eval '...'
+```
 
 ### Critical Paths
-{Infer from the diff which end-to-end flows must work after this change. Use the test plan artifact's Critical Paths section as a reference if available, but validate against the actual code changes.}
+{End-to-end flows that must work after this change. Infer these from the diff — which user journeys touch the modified code? Validate against actual code changes, not test plan assumptions.}
 
 - {end-to-end flow that must work}
 
 <details>
 <summary>Test Plan Reference (from /plan-eng-review)</summary>
 
-{If a test plan artifact was found in Step 1, include a summary of it here as reference material for the reviewer. List the Affected Pages/Routes, Key Interactions, and Edge Cases the plan review identified. If no test plan artifact exists, omit this collapsible section entirely.}
+{If a test plan artifact was found in Step 1, include it here as context for the reviewer. Summarize: Affected Pages/Routes, Key Interactions, Edge Cases, and Critical Paths from the plan review. If no test plan artifact exists, omit this entire collapsible section.}
 
 </details>
 
