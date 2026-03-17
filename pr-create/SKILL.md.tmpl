@@ -142,28 +142,31 @@ _(If no `.context/decisions.md` and user confirms no alternatives: "Straightforw
 {What state the system needs to be in. What data must exist. What services must be running. What user accounts are needed. Be specific — if a database record needs specific field values, say which ones.}
 
 ### Data/State Setup
-{Runnable queries or commands that set up the required state for testing. The reviewer should be able to copy-paste these directly.}
+{Runnable queries or commands that set up the required state for testing. The reviewer should be able to copy-paste these directly. Generate actual commands based on the code changes — not placeholders.}
 
 ```bash
 # Example: create test data
 docker exec tenx-mongodb mongosh --quiet --eval '...'
 ```
 
-<details>
-<summary>Step-by-step verification</summary>
-
-{If a test plan artifact was found in Step 1, use its Affected Pages/Routes and Key Interactions sections to generate these steps. Include the edge cases from the test plan as additional verification steps.}
+### Step-by-step verification
+{Generate these steps yourself based on the actual code changes, the diff, and the affected pages. Do NOT blindly copy from the test plan artifact. The test plan is inspiration and context — these steps must reflect what the code actually does.}
 
 1. Go to `{url}`
 2. {action}
 3. **Expect:** {result}
 
-</details>
-
 ### Critical Paths
-{If a test plan artifact was found in Step 1, list the critical end-to-end flows from it here. Otherwise infer from the diff.}
+{Infer from the diff which end-to-end flows must work after this change. Use the test plan artifact's Critical Paths section as a reference if available, but validate against the actual code changes.}
 
 - {end-to-end flow that must work}
+
+<details>
+<summary>Test Plan Reference (from /plan-eng-review)</summary>
+
+{If a test plan artifact was found in Step 1, include a summary of it here as reference material for the reviewer. List the Affected Pages/Routes, Key Interactions, and Edge Cases the plan review identified. If no test plan artifact exists, omit this collapsible section entirely.}
+
+</details>
 
 ## Proof
 _Screenshots will be added in a future version (browse skill + S3 upload)._
