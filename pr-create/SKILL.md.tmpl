@@ -46,6 +46,13 @@ git diff <base>...HEAD --stat
 Then read:
 1. `.context/decisions.md` — if it exists, this is the primary source for Problem, Solution, Risks, and Assumptions sections.
 2. Project `CLAUDE.md` files — for any Linear ticket references or project context.
+3. **Test plan artifact** — check if `/plan-eng-review` wrote a test plan:
+```bash
+SLUG=$(git remote get-url origin 2>/dev/null | sed 's|.*[:/]\([^/]*/[^/]*\)\.git$|\1|;s|.*[:/]\([^/]*/[^/]*\)$|\1|' | tr '/' '-')
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+ls -t ~/.gstack/projects/$SLUG/*-$BRANCH-test-plan-*.md 2>/dev/null | head -1
+```
+If a test plan file exists, read it. Use its "Affected Pages/Routes", "Key Interactions to Verify", "Edge Cases", and "Critical Paths" sections to populate the "How to Verify" section of the PR body.
 
 ---
 
@@ -145,11 +152,18 @@ docker exec tenx-mongodb mongosh --quiet --eval '...'
 <details>
 <summary>Step-by-step verification</summary>
 
+{If a test plan artifact was found in Step 1, use its Affected Pages/Routes and Key Interactions sections to generate these steps. Include the edge cases from the test plan as additional verification steps.}
+
 1. Go to `{url}`
 2. {action}
 3. **Expect:** {result}
 
 </details>
+
+### Critical Paths
+{If a test plan artifact was found in Step 1, list the critical end-to-end flows from it here. Otherwise infer from the diff.}
+
+- {end-to-end flow that must work}
 
 ## Proof
 _Screenshots will be added in a future version (browse skill + S3 upload)._
