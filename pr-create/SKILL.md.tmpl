@@ -1,0 +1,188 @@
+---
+name: pr-create
+version: 1.0.0
+description: |
+  Create a GitHub PR with Linear issue linking, structured title,
+  product-focused body, and automated screenshot proof.
+  Reads .context/decisions.md for context recovery.
+allowed-tools:
+  # Core file operations
+  - Bash
+  - Read
+  - Write
+  - Edit
+  - Grep
+  - Glob
+  # User interaction
+  - AskUserQuestion
+  - mcp__conductor__AskUserQuestion
+  # Linear integration
+  - mcp__claude_ai_Linear__list_issues
+  - mcp__claude_ai_Linear__get_issue
+  # Future: browse skill for screenshots (v2)
+  # Future: S3 upload for screenshot hosting (v2)
+---
+
+{{PREAMBLE}}
+
+{{BASE_BRANCH_DETECT}}
+
+# PR Create: Product-Focused Pull Request
+
+You are running the `/pr-create` workflow. Create a GitHub PR with a Linear issue link, structured title, and product-focused body.
+
+---
+
+## Step 1: Gather Context
+
+Run these commands to understand what is being shipped:
+
+```bash
+git branch --show-current
+git log <base>..HEAD --oneline
+git diff <base>...HEAD --stat
+```
+
+Then read:
+1. `.context/decisions.md` — if it exists, this is the primary source for Problem, Solution, Risks, and Assumptions sections.
+2. Project `CLAUDE.md` files — for any Linear ticket references or project context.
+
+---
+
+## Step 2: Linear Issue Discovery
+
+Find the related Linear issue. Follow this priority order — stop at first match:
+
+1. **Check `.context/decisions.md`** for a `TEN-\d+` pattern. If found, use that ticket.
+2. **Check CLAUDE.md files** for `TEN-\d+` references.
+3. **Search Linear API** via `mcp__claude_ai_Linear__list_issues`:
+   - Search by keywords extracted from the branch name (split on `/`, `-`, `_`) and the first commit message.
+   - Also filter by assignee "me" and states "started" or "in progress".
+4. **Confirm with user:**
+   - If 0 matches or >3 matches: use `mcp__conductor__AskUserQuestion` with any matches found + "Enter ticket manually" + "No ticket (N/A)" as options.
+   - If 1-3 matches: use `mcp__conductor__AskUserQuestion` presenting the matches with a recommendation of the best match based on title similarity to the branch name.
+5. Once identified, call `mcp__claude_ai_Linear__get_issue` to get the full issue details (title, description, URL).
+
+---
+
+## Step 3: PR Title
+
+Format: `TEN-123: <type>(<scope>): <summary>`
+
+Rules:
+- **type**: Infer from the diff. `feat` for new features, `fix` for bug fixes, `refactor` for structural changes, `test` for test-only, `docs` for documentation, `chore` for config/build/deps.
+- **scope**: Infer from changed files. Map to domain areas: `screening`, `auth`, `payments`, `employer-portal`, `contractor-portal`, `api`, `infra`, etc.
+- **summary**: Imperative mood, ≤50 chars (excluding the `TEN-###: ` prefix).
+- If no Linear ticket: omit the `TEN-123: ` prefix entirely.
+
+---
+
+## Step 4: Screenshot Proof (v2 — placeholder)
+
+This step will be implemented in a future version using the browse skill + S3 upload.
+Skip this step. Do not block PR creation.
+
+---
+
+## Step 5: PR Body
+
+**If `.context/decisions.md` does NOT exist:** Before generating the body, use `mcp__conductor__AskUserQuestion` to gather the information needed for sections that require deeper context. Ask in batches:
+- Batch 1: "What problem does this solve and why are we doing this?" + "Were there alternative approaches considered?"
+- Batch 2: "What are the risks?" + "What assumptions were made?"
+
+Do NOT silently infer these sections — prompt the user explicitly.
+
+**If `.context/decisions.md` exists:** populate all sections directly from it. Use the Linear issue description to enrich the Problem/Why sections.
+
+Generate the PR body using this exact template:
+
+````markdown
+## Problem
+**Linear:** [TEN-123: title](url)
+
+{What problem are we solving? 3 lines max. Non-technical. Product/design language only.}
+
+### Why are we doing this?
+{Thorough explanation of what we want to achieve with this PR. Not just "what's broken" but the thought process behind wanting to implement this change. What is the desired end state? What user/business outcome are we targeting? What triggered this work — a user complaint, a metric, a strategic decision? This section should give a reviewer full context on the motivation without needing to read the code.}
+
+## Impact
+- **Users:** {what changed from their perspective, or "No change"}
+- **Admins/internal:** {what changed from admin perspective, or "No change"}
+- **System:** {background services, data model, infra, or "No change"}
+
+## Solution Analysis
+
+### Alternatives Considered
+
+**Option A: {name}**
+{Description of the approach — what it involves, how it would work, what it touches.}
+- **Pros:** {bullet list}
+- **Cons:** {bullet list}
+
+**Option B: {name}**
+{Description of the approach — what it involves, how it would work, what it touches.}
+- **Pros:** {bullet list}
+- **Cons:** {bullet list}
+
+_(If no `.context/decisions.md` and user confirms no alternatives: "Straightforward change — no alternatives analysis needed.")_
+
+### Decision
+{Which option was chosen and why. Address the cons of the chosen solution — how are they mitigated? Address the pros of the rejected solutions — why were they not enough to justify choosing them? This should read as a thorough reasoning, not just a label.}
+
+## How to Verify
+
+### Prerequisites
+{What state the system needs to be in. What data must exist. What services must be running. What user accounts are needed. Be specific — if a database record needs specific field values, say which ones.}
+
+### Data/State Setup
+{Runnable queries or commands that set up the required state for testing. The reviewer should be able to copy-paste these directly.}
+
+```bash
+# Example: create test data
+docker exec tenx-mongodb mongosh --quiet --eval '...'
+```
+
+<details>
+<summary>Step-by-step verification</summary>
+
+1. Go to `{url}`
+2. {action}
+3. **Expect:** {result}
+
+</details>
+
+## Proof
+_Screenshots will be added in a future version (browse skill + S3 upload)._
+
+## Risks
+{For each risk: describe the risk, its likelihood, its blast radius, and how it is mitigated. Be thorough — a reviewer should understand exactly what could go wrong and what safeguards exist.}
+
+- **{Risk name}:** {What could happen. How likely is it. What is the blast radius — who/what is affected. How is it mitigated or monitored.}
+
+## Assumptions
+{List every assumption made during implementation. For each: state the assumption, why it was made, and what breaks if it turns out to be wrong.}
+
+- **{Assumption}:** {Why we assumed this. What breaks if wrong.}
+
+---
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+````
+
+---
+
+## Step 6: Create or Update PR
+
+1. Check if a PR already exists: `gh pr view --json url -q .url 2>/dev/null`
+2. If a PR exists: update it with `gh pr edit --title "<title>" --body "$(cat <<'EOF' ... EOF)"`
+3. If no PR exists: create with `gh pr create --base <base> --title "<title>" --body "$(cat <<'EOF' ... EOF)"`
+4. **Output the PR URL** — this should be the final output the user sees.
+
+---
+
+## Important Rules
+
+- **Never skip Linear discovery.** Always attempt to find the ticket.
+- **Never silently infer Problem/Why/Risks/Assumptions.** If `.context/decisions.md` is missing, ask the user.
+- **PR body is product-focused.** Do not describe code changes — describe what changed for users, admins, and the system.
+- **Keep the Problem section to 3 lines max.** The "Why" section is where depth goes.
+- **Verification must be copy-pasteable.** Include actual commands, URLs, and expected results.

@@ -11,6 +11,9 @@ allowed-tools:
   - Grep
   - Glob
   - AskUserQuestion
+  - mcp__claude_ai_Linear__list_issues
+  - mcp__claude_ai_Linear__get_issue
+  - mcp__conductor__AskUserQuestion
 ---
 
 {{PREAMBLE}}
@@ -371,38 +374,24 @@ git push -u origin <branch-name>
 
 ## Step 8: Create PR
 
-Create a pull request using `gh`:
+Read the pr-create skill at `.claude/skills/gstack-fork/pr-create/SKILL.md` and follow its instructions to create the PR.
 
-```bash
-gh pr create --base <base> --title "<type>: <summary>" --body "$(cat <<'EOF'
-## Summary
-<bullet points from CHANGELOG>
+**Additional ship-specific sections** to append after the pr-create template's standard sections (before the footer):
 
-## Pre-Landing Review
+### Pre-Landing Review
 <findings from Step 3.5, or "No issues found.">
 
-## Eval Results
-<If evals ran: suite names, pass/fail counts, cost dashboard summary. If skipped: "No prompt-related files changed — evals skipped.">
+### Eval Results
+<from Step 3.25, or "No prompt-related files changed — evals skipped.">
 
-## Greptile Review
-<If Greptile comments were found: bullet list with [FIXED] / [FALSE POSITIVE] / [ALREADY FIXED] tag + one-line summary per comment>
-<If no Greptile comments found: "No Greptile comments.">
-<If no PR existed during Step 3.75: omit this section entirely>
+### Greptile Review
+<from Step 3.75, or omit if no PR existed>
 
-## TODOS
-<If items marked complete: bullet list of completed items with version>
-<If no items completed: "No TODO items completed in this PR.">
-<If TODOS.md created or reorganized: note that>
-<If TODOS.md doesn't exist and user skipped: omit this section>
+### TODOS
+<from Step 5.5, or omit if N/A>
 
-## Test plan
-- [x] All Rails tests pass (N runs, 0 failures)
-- [x] All Vitest tests pass (N tests)
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-EOF
-)"
-```
+### Test Results
+- [x] All tests pass (N runs, 0 failures)
 
 **Output the PR URL** — this should be the final output the user sees.
 

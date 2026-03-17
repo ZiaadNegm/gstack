@@ -570,3 +570,46 @@ If any AskUserQuestion goes unanswered, note it here. Never silently default.
   │ planning    │              │              │                    │
   └─────────────┴──────────────┴──────────────┴────────────────────┘
 ```
+
+## Decision Log (Required Output)
+
+As the final step of the review, write or update `.context/decisions.md` in the repository root. This file captures the decisions made during this review so that downstream workflows (especially `/pr-create` and `/ship`) can populate PR descriptions with full context.
+
+1. Run `mkdir -p .context`
+2. Add `.context/` to `.gitignore` if it is not already there — this is working context, not committed to the repo.
+3. If `.context/decisions.md` already exists, **append** a new Journey entry. Never overwrite previous entries.
+4. If it does not exist, create the full file from scratch.
+
+**Before writing, ask the user explicitly:**
+- "What was the original intent behind this work? What triggered it?"
+- "What is the desired outcome — what should users/the system experience after this ships?"
+- Use `AskUserQuestion` for these — do not infer silently.
+
+### What to write
+
+**If the file is new (no prior entries):**
+- Write the full file header (Branch, Linear Issue, Last updated)
+- Write a "Journey" section with an "Initial Intent" entry capturing the user's original ask, the problem it solves, desired outcome, and what triggered the work
+- Write a "Plan Review" Journey entry with: plan summary, all alternatives considered (with approach, pros, cons, and con mitigation for each), the decision and reasoning, scope locked (in scope + deferred), risks identified (each with likelihood, blast radius, mitigation), and assumptions made (each with why and what breaks if wrong)
+- Write the "current state" sections: Problem Statement, Chosen Solution, Key Tradeoffs, Assumptions, Risks, Scope, Unresolved Questions
+
+**If the file already exists (prior entries present):**
+- Append a new "Plan Review" Journey entry (do not overwrite previous entries)
+- Update the "current state" sections if decisions changed
+
+### Format
+
+Use the format defined in CLAUDE.md under "Decision Log Convention". The Journey section is append-only — each entry is a timestamped record with a `### {YYYY-MM-DD} — {title}` header. The "current state" sections below the Journey reflect the latest decisions and are updated (not appended) when things change.
+
+### Population rules
+- **Initial Intent**: From the user's original request and their answers to your questions above.
+- **Plan Review / Plan summary**: From Step 0 scope challenge, dream state mapping, and the agreed approach.
+- **Alternatives Considered**: From Step 0 premise challenge, 10x check, and platonic ideal analysis. Include EVERY option that was discussed with the user. Each must have Approach, Pros, Cons, and Con mitigation.
+- **Decision**: The option the user selected, with the reason from the AskUserQuestion resolution. Address cons of chosen option and pros of rejected options.
+- **Dream state delta**: From the "Dream state delta" required output — where this plan leaves us relative to the 12-month ideal.
+- **Risks**: From the failure modes registry, error/rescue registry, and security review. Each with likelihood, blast radius, mitigation.
+- **Assumptions**: From all review sections — any "assuming X" statements. Each with why and what breaks if wrong.
+- **Scope**: From the "NOT in scope" and "What already exists" required outputs.
+- **Unresolved Questions**: From the unresolved decisions list.
+
+**If the review was brief:** Still write the file. Minimum: one Journey entry (Initial Intent) + Problem Statement + Chosen Solution.
